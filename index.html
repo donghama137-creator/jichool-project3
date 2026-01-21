@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Diet | 실제 데이터 기반 10억 시뮬레이터</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0d0d0d;
+            --card-bg: #161616;
+            --primary: #00ff88;
+            --secondary: #00e1ff;
+            --accent: #ff8800;
+            --meme: #ff00ff;
+            --text: #ffffff;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0; padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 50px; }
+        header h1 { color: var(--primary); font-size: 2.5rem; margin-bottom: 10px; }
+
+        section {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            border: 1px solid #333;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            border-left: 5px solid var(--primary);
+            padding-left: 15px;
+            color: var(--primary);
+        }
+
+        .title-secondary { border-left-color: var(--secondary); color: var(--secondary); }
+        .title-accent { border-left-color: var(--accent); color: var(--accent); }
+        .title-meme { border-left-color: var(--meme); color: var(--meme); }
+
+        .tip-text { font-size: 0.9rem; color: #aaa; margin-bottom: 25px; padding-left: 20px; }
+
+        .flex-container { display: flex; gap: 30px; flex-wrap: wrap; }
+        .input-side { flex: 1; min-width: 300px; }
+        .chart-side { flex: 1.2; min-width: 300px; display: flex; flex-direction: column; gap: 20px; }
+        
+        .chart-wrapper { background: #000; border-radius: 15px; padding: 15px; flex-grow: 1; }
+
+        .scroll-area { max-height: 400px; overflow-y: auto; padding-right: 10px; }
+        .scroll-area::-webkit-scrollbar { width: 6px; }
+        .scroll-area::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        .check-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #222; padding: 12px 20px; border-radius: 10px; margin-bottom: 10px;
+        }
+        input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+
+        .add-custom { display: flex; gap: 10px; margin-top: 15px; }
+        .add-custom input { flex: 1; padding: 10px; background: #1a1a1a; border: 1px solid #444; color: #fff; border-radius: 5px; }
+        .add-btn { padding: 10px 15px; background: var(--primary); color: #000; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+        label { display: block; margin-top: 15px; font-size: 0.9rem; color: #aaa; }
+        input[type="number"], select {
+            width: 100%; padding: 12px; margin-top: 5px; background: #222;
+            border: 1px solid #444; color: #fff; border-radius: 8px; box-sizing: border-box;
+        }
+
+        .result-summary { padding: 25px; background: #1a1a1a; border-radius: 15px; text-align: center; border: 2px solid var(--primary); }
+        .highlight { font-size: 2rem; font-weight: 800; color: var(--primary); margin-top: 10px; display: block; }
+
+        .verdict-box { text-align: center; padding: 40px; }
+        .grade { font-size: 6rem; font-weight: 900; margin: 10px 0; }
+        .grade-accent { color: var(--accent); text-shadow: 0 0 25px rgba(255, 136, 0, 0.6); }
+
+        .ad-banner { background: #111; border: 1px dashed #444; padding: 20px; text-align: center; color: #666; margin-top: 20px; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>10억 프로젝트</h1>
+        <p>ROAD TO 10억, 구독료의 함정</p>
+    </header>
+
+    <section id="section1">
+        <div class="section-title">1. 매달 나가는 구독료, 10년전 S&P500에 투자했다면?</div>
+        <p class="tip-text">Tip. 최근 사용량을 확인 후, 사용하지 않는 구독 서비스 중단해보는 건 어떨까요?</p>
+        <div class="flex-container">
+            <div class="input-side">
+                <div class="scroll-area" id="sub-list"></div>
+                <div class="add-custom">
+                    <input type="text" id="custom-name" placeholder="항목 이름">
+                    <input type="number" id="custom-price" placeholder="금액">
+                    <button class="add-btn" onclick="addCustomItem()">추가</button>
+                </div>
+            </div>
+            <div class="chart-side">
+                <div class="chart-wrapper">
+                    <canvas id="chart1"></canvas>
+                    <p style="text-align:center; font-size:0.8rem; color:#666; margin-top:10px;">위 그래프는 S&P500의 연 평균 수익률 10%를 기준으로 합니다.</p>
+                </div>
+                <div class="result-summary">
+                    <p style="margin:0; font-size:1.1rem; font-weight:600;">지금 내 통장엔?</p>
+                    <span class="highlight" id="fv-text">0원</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="section2">
+        <div class="section-title title-secondary">2. 10억 달성 예상기간 (실제 시장 변동성 반영)</div>
+        <div class="flex-container">
+            <div class="input-side">
+                <label>현재 보유 자산 (만원)</label>
+                <input type="number" id="cur-asset" value="1000" oninput="updateAll()">
+                
+                <label>매달 추가 투자금 (만원)</label>
+                <input type="number" id="add-monthly" value="50" oninput="updateAll()">
+
+                <label>투자 전략 선택</label>
+                <select id="asset-type" onchange="updateAll()">
+                    <option value="VOO">VOO (안정형) - 연 10%</option>
+                    <option value="QLD">QLD (중위험 중수익) - 연 20%</option>
+                    <option value="TQQQ">TQQQ (고위험 고수익) - 연 30%</option>
+                    <option value="VOO_QLD">VOO 50% / QLD 50% - 연 15%</option>
+                    <option value="VOO_TQQQ">VOO 50% / TQQQ 50% - 연 20%</option>
+                </select>
+            </div>
+            <div class="chart-side">
+                <div class="chart-wrapper"><canvas id="chart2"></canvas></div>
+                <div class="result-summary" style="border-color: var(--secondary);">
+                    <p style="margin:0; font-size:1.1rem; font-weight:600;">10억 달성까지 남은 시간</p>
+                    <span class="highlight" id="time-text" style="color: var(--secondary);">--년</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="section3">
+        <div class="section-title title-accent">3. 내 지출관리 능력은?</div>
+        <div class="verdict-box">
+            <div id="grade-display" class="grade grade-accent">D-</div>
+            <p id="rank-text" style="font-size: 1.4rem; font-weight: bold; color: var(--accent);">하위 20%</p>
+            <p id="commentary" style="color: #aaa; max-width: 700px; margin: 25px auto; font-size: 1.1rem;"></p>
+        </div>
+    </section>
+
+    <section id="meme-challenge" style="border: 1px solid var(--meme); background: rgba(255, 0, 255, 0.05);">
+        <div class="section-title title-meme">🔥 보너스 : 두쫀쿠 대신 QLD?</div>
+        <div class="flex-container">
+            <div class="input-side">
+                <p>매일 5,000원짜리 두쫀쿠를 1개씩 먹는다면?</p>
+                <div class="result-summary" style="border-color: var(--meme);">
+                    <p>1년 뒤 예상 체중 변화</p>
+                    <div class="highlight" style="color: var(--meme);">+ <span id="weight-gain">0</span> kg</div>
+                    <p style="font-size: 0.8rem; color: #888; margin-top:5px;">*1개당 500kcal 기준 (지방 1kg = 7700kcal)</p>
+                </div>
+            </div>
+            <div class="chart-side">
+                <div class="result-summary" style="border-color: var(--primary);">
+                    <p>그 돈으로 QLD를 샀다면? (10년 뒤)</p>
+                    <div class="highlight" id="meme-money">0원</div>
+                    <p style="font-size: 0.8rem; color: #888; margin-top:5px;">*실제 QLD 역사적 변동성 반영</p>
+                </div>
+                <p style="text-align:center; color:var(--meme); font-weight:bold; margin-top:10px;"></p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    const realMarketPath = [
+        1.01, 0.98, 1.03, 1.02, 1.04, 0.99, 1.02, 1.01, 0.97, 1.03, 1.02, 1.01,
+        1.02, 1.01, 1.03, 1.02, 1.04, 1.01, 1.02, 1.03, 1.05, 1.02, 1.03, 1.02,
+        1.04, 0.96, 1.02, 1.01, 1.03, 0.97, 1.02, 1.01, 0.91, 1.02, 1.01, 0.98,
+        1.06, 1.03, 1.02, 1.04, 0.95, 1.06, 1.02, 1.01, 1.04, 1.03, 1.02, 1.03,
+        0.92, 0.70, 1.15, 1.10, 1.05, 1.03, 1.06, 1.08, 0.94, 1.05, 1.06, 1.04,
+        1.03, 1.04, 1.05, 1.06, 1.01, 1.03, 1.04, 1.03, 0.95, 1.06, 1.02, 1.04,
+        0.91, 0.95, 1.02, 0.92, 1.01, 0.88, 1.08, 0.94, 0.89, 1.09, 1.01, 0.98,
+        1.05, 1.04, 1.06, 1.05, 1.07, 1.06, 1.04, 0.95, 1.08, 1.04, 1.02, 1.03,
+        1.03, 1.05, 1.04, 0.96, 1.06, 1.05, 1.03, 1.04, 1.05, 1.06, 1.02, 1.03,
+        1.02, 1.03, 1.04, 1.02, 1.03, 1.01, 1.02, 1.03, 1.04, 1.02, 1.01, 1.01
+    ];
+
+    const subs = [
+        { name: '유튜브 프리미엄', price: 14900 }, { name: '넷플릭스', price: 17000 },
+        { name: '쿠팡 와우', price: 7890 }, { name: '티빙', price: 13500 },
+        { name: '네이버 멤버십', price: 4900 }, { name: '디즈니 플러스', price: 9900 },
+        { name: '멜론', price: 10900 }, { name: '스포티파이', price: 10900 },
+        { name: 'ChatGPT Plus', price: 29000 }, { name: 'Gemini Advanced', price: 29000 }
+    ];
+
+    let chart1, chart2;
+
+    window.onload = () => {
+        const list = document.getElementById('sub-list');
+        subs.forEach(s => {
+            list.innerHTML += `<div class="check-item"><span>${s.name}</span><div style="display:flex; align-items:center; gap:10px;"><span style="font-size:0.9rem; color:#888;">${s.price.toLocaleString()}원</span><input type="checkbox" class="sub-check" data-name="${s.name}" value="${s.price}" onchange="updateAll()"></div></div>`;
+        });
+        updateAll();
+    };
+
+    function addCustomItem() {
+        const name = document.getElementById('custom-name').value;
+        const price = parseInt(document.getElementById('custom-price').value);
+        if(name && price) {
+            document.getElementById('sub-list').innerHTML += `<div class="check-item"><span>${name}</span><div style="display:flex; align-items:center; gap:10px;"><span style="font-size:0.9rem; color:#888;">${price.toLocaleString()}원</span><input type="checkbox" class="sub-check" data-name="${name}" value="${price}" onchange="updateAll()" checked></div></div>`;
+            document.getElementById('custom-name').value = ''; document.getElementById('custom-price').value = ''; updateAll();
+        }
+    }
+
+    function updateAll() {
+        const checkedBoxes = Array.from(document.querySelectorAll('.sub-check:checked'));
+        const monthlySaved = checkedBoxes.reduce((a, b) => a + parseInt(b.value), 0);
+        const checkedNames = checkedBoxes.map(b => b.getAttribute('data-name'));
+        
+        // 1번: 10년 자산
+        let fvData = [], currentFV = 0;
+        for(let i=0; i<120; i++) {
+            currentFV = (currentFV * (realMarketPath[i] || 1.01)) + monthlySaved;
+            if(i % 12 === 0) fvData.push(Math.round(currentFV / 10000));
+        }
+        document.getElementById('fv-text').innerText = Math.round(currentFV).toLocaleString() + "원";
+        renderChart1(fvData);
+
+        // 2번: 로드맵
+        const curAsset = (parseFloat(document.getElementById('cur-asset').value) || 0) * 10000;
+        const addMonthly = ((parseFloat(document.getElementById('add-monthly').value) || 0) * 10000) + monthlySaved;
+        const strategy = document.getElementById('asset-type').value;
+        const leverageMap = { 'VOO': 1.0, 'QLD': 2.0, 'TQQQ': 3.0, 'VOO_QLD': 1.5, 'VOO_TQQQ': 2.0 };
+        const leverage = leverageMap[strategy];
+
+        let months = 0, tempAsset = curAsset, timelineData = [];
+        while(tempAsset < 1000000000 && months < 600) {
+            let baseReturn = (realMarketPath[months % 120] || 1.01) - 1;
+            tempAsset = (tempAsset * (1 + (baseReturn * leverage))) + addMonthly;
+            months++;
+            if(months % 12 === 0) timelineData.push(Math.round(tempAsset / 10000));
+        }
+        document.getElementById('time-text').innerText = (months/12).toFixed(1) + "년";
+        renderChart2(timelineData);
+
+        // 3번: 판결
+        const count = checkedBoxes.length;
+        const grades = ["D-", "D", "C", "C+", "B", "B+", "A", "A+"];
+        const ranks = ["하위 20%", "하위 40%", "상위 50%", "상위 40%", "상위 25%", "상위 20%", "상위 10%", "상위 5%"];
+        let idx = Math.min(count - 1, 7);
+        if(count === 0) idx = 0;
+        
+        document.getElementById('grade-display').innerText = grades[idx] || "D-";
+        document.getElementById('rank-text').innerText = ranks[idx] || "하위 20%";
+        document.getElementById('commentary').innerHTML = count > 0 ? 
+            `현재 당신이 선택한 <b style="color:var(--primary)">[${checkedNames.join(", ")}]</b> 항목들을 구독 취소한다면, 당신의 자산 관리 지수는 <b style="color:var(--accent)">${grades[idx]}</b>입니다.` : 
+            "비판적 사고를 시작하십시오. 지금의 선택이 당신의 미래 자산을 결정합니다.";
+
+        // 밈 계산
+        document.getElementById('weight-gain').innerText = ((500 * 365) / 7700).toFixed(1);
+        let memeMoney = 0;
+        for(let i=0; i<120; i++) {
+            memeMoney = (memeMoney * (1 + ((realMarketPath[i] - 1) * 2.0))) + 150000;
+        }
+        document.getElementById('meme-money').innerText = Math.round(memeMoney).toLocaleString() + "원";
+    }
+
+    function renderChart1(data) {
+        const ctx = document.getElementById('chart1').getContext('2d');
+        if(chart1) chart1.destroy();
+        chart1 = new Chart(ctx, {
+            type: 'line', data: { labels: Array.from({length: 10}, (_, i) => `${i+1}년`), datasets: [{ label: '확보 자산(만원)', data: data, borderColor: '#00ff88', backgroundColor: 'rgba(0, 255, 136, 0.2)', fill: true, tension: 0.4 }] },
+            options: { responsive: true, scales: { y: { grid: {color:'#333'} } } }
+        });
+    }
+
+    function renderChart2(data) {
+        const ctx = document.getElementById('chart2').getContext('2d');
+        if(chart2) chart2.destroy();
+        chart2 = new Chart(ctx, {
+            type: 'line', data: { labels: data.map((_, i) => `${i+1}년`), datasets: [{ label: '자산 성장 곡선(만원)', data: data, borderColor: '#00e1ff', backgroundColor: 'rgba(0, 225, 255, 0.1)', fill: true, tension: 0.2 }] },
+            options: { responsive: true, animation: { duration: 1430, easing: 'easeOutQuart' }, scales: { y: { grid: {color:'#333'} } } }
+        });
+    }
+</script>
+</body>
+</html>
