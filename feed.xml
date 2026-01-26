@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+<channel>
+  <title>10억 프로젝트 | Money Diet</title>
+  <link>https://jichool-project3.vercel.app/</link>
+  <description>실제 데이터 기반 자산 형성 시뮬레이터</description>
+  <item>
+    <title>10억 달성 시뮬레이터 업데이트</title>
+    <link>https://jichool-project3.vercel.app/</link>
+    <description>VOO, QLD, TQQQ 데이터를 활용한 자산 성장 분석 도구</description>
+    <pubDate>Mon, 26 Jan 2026 00:00:00 +0900</pubDate>
+  </item>
+</channel>
+</rss>
