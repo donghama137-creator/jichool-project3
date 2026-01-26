@@ -84,8 +84,6 @@
         .verdict-box { text-align: center; padding: 40px; }
         .grade { font-size: 6rem; font-weight: 900; margin: 10px 0; }
         .grade-accent { color: var(--accent); text-shadow: 0 0 25px rgba(255, 136, 0, 0.6); }
-
-        .ad-banner { background: #111; border: 1px dashed #444; padding: 20px; text-align: center; color: #666; margin-top: 20px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -176,10 +174,40 @@
                     <div class="highlight" id="meme-money">0원</div>
                     <p style="font-size: 0.8rem; color: #888; margin-top:5px;">*실제 QLD 역사적 변동성 반영</p>
                 </div>
-                <p style="text-align:center; color:var(--meme); font-weight:bold; margin-top:10px;"></p>
             </div>
         </div>
     </section>
+
+    <section id="blog-posts" style="padding: 25px; background: var(--card-bg); border: 1px solid #333; border-radius: 15px;">
+        <div class="section-title title-secondary">📝 최신 투자 및 의학 칼럼</div>
+        <div id="blog-content" style="color: #aaa; font-size: 0.9rem;">
+            글을 불러오는 중입니다...
+        </div>
+    </section>
+
+    <section id="investment-guide" style="border-top: 2px solid var(--primary); margin-top: 60px; padding: 30px; background: var(--card-bg); border-radius: 20px;">
+        <div class="section-title title-secondary">📊 투자 전략 및 리스크 가이드</div>
+        <div style="color: #ccc; font-size: 0.95rem; line-height: 1.8;">
+            <p>본 시뮬레이터에서 제공하는 자산 성장 곡선은 과거의 시장 데이터(S&P 500 및 레버리지 ETF의 역사적 변동성)를 기반으로 산출되었습니다. 하지만 과거의 수익률이 미래의 결과를 보장하지 않음을 유의해야 합니다.</p>
+            <h3 style="color: var(--secondary); margin-top: 20px;">지수별 투자 특징</h3>
+            <ul>
+                <li><strong>VOO (S&P 500):</strong> 미국 대형주 500개 기업에 투자하며, 장기적으로 연평균 약 10% 내외 수익 기록.</li>
+                <li><strong>QLD (Nasdaq-100 2X):</strong> 나스닥 100 지수의 일간 수익률을 2배 추종.</li>
+                <li><strong>TQQQ (Nasdaq-100 3X):</strong> 3배 레버리지 상품으로 극심한 변동성 동반.</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="creator-info" style="padding: 25px; background: rgba(0, 255, 136, 0.05); border: 1px solid var(--primary); border-radius: 15px; text-align: center;">
+        <h3 style="color: var(--primary); margin-bottom: 15px;">🔍 더 깊은 분석이 궁금하신가요?</h3>
+        <p style="color: #ccc; margin-bottom: 20px;">비뇨의학과 전문의의 시각으로 분석한 <b>투자 전략</b>과 <b>전문 의학 정보</b>를 확인해 보세요.</p>
+        <a href="https://winsum94.tistory.com" target="_blank" style="padding: 12px 25px; background: var(--primary); color: #000; text-decoration: none; border-radius: 30px; font-weight: bold; display: inline-block;">📈 투자 & 의학 블로그 방문하기</a>
+    </section>
+
+    <footer style="margin-top: 50px; padding: 30px; border-top: 1px solid #333; color: #666; font-size: 0.8rem; text-align: center;">
+        <p><strong>Disclaimer:</strong> 본 수치는 시뮬레이션 결과이며 실제 투자 수익을 보장하지 않습니다.</p>
+        <p>&copy; 2026 Money Diet Project. All rights reserved. | <a href="#" style="color: #888;">개인정보처리방침</a></p>
+    </footer>
 </div>
 
 <script>
@@ -212,6 +240,7 @@
             list.innerHTML += `<div class="check-item"><span>${s.name}</span><div style="display:flex; align-items:center; gap:10px;"><span style="font-size:0.9rem; color:#888;">${s.price.toLocaleString()}원</span><input type="checkbox" class="sub-check" data-name="${s.name}" value="${s.price}" onchange="updateAll()"></div></div>`;
         });
         updateAll();
+        loadBlogPosts();
     };
 
     function addCustomItem() {
@@ -228,7 +257,6 @@
         const monthlySaved = checkedBoxes.reduce((a, b) => a + parseInt(b.value), 0);
         const checkedNames = checkedBoxes.map(b => b.getAttribute('data-name'));
         
-        // 1번: 10년 자산
         let fvData = [], currentFV = 0;
         for(let i=0; i<120; i++) {
             currentFV = (currentFV * (realMarketPath[i] || 1.01)) + monthlySaved;
@@ -237,7 +265,6 @@
         document.getElementById('fv-text').innerText = Math.round(currentFV).toLocaleString() + "원";
         renderChart1(fvData);
 
-        // 2번: 로드맵
         const curAsset = (parseFloat(document.getElementById('cur-asset').value) || 0) * 10000;
         const addMonthly = ((parseFloat(document.getElementById('add-monthly').value) || 0) * 10000) + monthlySaved;
         const strategy = document.getElementById('asset-type').value;
@@ -254,20 +281,18 @@
         document.getElementById('time-text').innerText = (months/12).toFixed(1) + "년";
         renderChart2(timelineData);
 
-        // 3번: 판결
         const count = checkedBoxes.length;
         const grades = ["D-", "D", "C", "C+", "B", "B+", "A", "A+"];
         const ranks = ["하위 20%", "하위 40%", "상위 50%", "상위 40%", "상위 25%", "상위 20%", "상위 10%", "상위 5%"];
         let idx = Math.min(count - 1, 7);
         if(count === 0) idx = 0;
         
-        document.getElementById('grade-display').innerText = grades[idx] || "D-";
-        document.getElementById('rank-text').innerText = ranks[idx] || "하위 20%";
+        document.getElementById('grade-display').innerText = grades[idx];
+        document.getElementById('rank-text').innerText = ranks[idx];
         document.getElementById('commentary').innerHTML = count > 0 ? 
             `현재 당신이 선택한 <b style="color:var(--primary)">[${checkedNames.join(", ")}]</b> 항목들을 구독 취소한다면, 당신의 자산 관리 지수는 <b style="color:var(--accent)">${grades[idx]}</b>입니다.` : 
             "비판적 사고를 시작하십시오. 지금의 선택이 당신의 미래 자산을 결정합니다.";
 
-        // 밈 계산
         document.getElementById('weight-gain').innerText = ((500 * 365) / 7700).toFixed(1);
         let memeMoney = 0;
         for(let i=0; i<120; i++) {
@@ -293,69 +318,9 @@
             options: { responsive: true, animation: { duration: 1430, easing: 'easeOutQuart' }, scales: { y: { grid: {color:'#333'} } } }
         });
     }
-</script>
-    </script>
 
-    <section id="investment-guide" style="border-top: 2px solid var(--primary); margin-top: 60px; padding: 30px; background: var(--card-bg); border-radius: 20px;">
-        <div class="section-title title-secondary">📊 투자 전략 및 리스크 가이드</div>
-        <div style="color: #ccc; font-size: 0.95rem; line-height: 1.8;">
-            <p>본 시뮬레이터에서 제공하는 자산 성장 곡선은 과거의 시장 데이터(S&P 500 및 레버리지 ETF의 역사적 변동성)를 기반으로 산출되었습니다. 하지만 과거의 수익률이 미래의 결과를 보장하지 않음을 유의해야 합니다.</p>
-            
-            <h3 style="color: var(--secondary); margin-top: 20px;">지수별 투자 특징</h3>
-            <ul>
-                <li><strong>VOO (S&P 500):</strong> 미국 대형주 500개 기업에 투자하며, 장기적으로 연평균 약 10% 내외의 수익률을 기록해온 안정적인 자산입니다.</li>
-                <li><strong>QLD (Nasdaq-100 2X):</strong> 나스닥 100 지수의 일간 수익률을 2배로 추종합니다. 상승장에서는 강력하나, 횡보장에서는 변동성 잠식(Volatility Decay)으로 인해 손실이 발생할 수 있습니다.</li>
-                <li><strong>TQQQ (Nasdaq-100 3X):</strong> 3배 레버리지 상품으로 극심한 변동성을 동반합니다. 하락장에서 최대 낙폭(MDD)이 발생할 수 있으므로 전문적인 자산 배분 전략이 필요합니다.</li>
-            </ul>
-
-            <h3 style="color: var(--accent); margin-top: 20px;">자산 관리의 논리적 접근</h3>
-            <p>불필요한 구독 서비스나 일회성 지출을 줄이는 것은 단순한 절약을 넘어, 자산 형성의 기초가 되는 <strong>시드 머니(Seed Money)</strong>를 확보하는 과정입니다. 복리의 마법은 시간이 길어질수록, 그리고 기초 자산이 클수록 기하급수적으로 작용합니다.</p>
-        </div>
-    </section>
-
-    <footer style="margin-top: 50px; padding: 30px; border-top: 1px solid #333; color: #666; font-size: 0.8rem;">
-        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
-            <div>
-                <p><strong>Disclaimer:</strong> 본 사이트에서 제공하는 모든 수치는 통계적 시뮬레이션 결과이며, 실제 투자 수익을 보장하지 않습니다. 모든 투자의 책임은 본인에게 있습니다.</p>
-                <p>&copy; 2026 Money Diet Project. All rights reserved.</p>
-            </div>
-            <div style="text-align: right;">
-                <a href="#" style="color: #888; text-decoration: none;">개인정보처리방침</a> | 
-                <a href="#" style="color: #888; text-decoration: none;">이용약관</a>
-            </div>
-        </div>
-    </footer>
-    </body>
-</html>
-</section> <section id="blog-posts" style="margin-top: 40px; padding: 25px; background: var(--card-bg); border: 1px solid #333; border-radius: 15px;">
-        <div class="section-title title-secondary">📝 최신 투자 및 의학 칼럼</div>
-        <div id="blog-content" style="color: #aaa; font-size: 0.9rem;">
-            글을 불러오는 중입니다...
-        </div>
-    </section>
-
-    <section id="creator-info" style="margin-top: 40px; padding: 25px; background: rgba(0, 255, 136, 0.05); border: 1px solid var(--primary); border-radius: 15px; text-align: center;">
-        ...
-    </section>
-
-    <footer style="margin-top: 50px; padding: 30px; border-top: 1px solid #333; color: #666; font-size: 0.8rem;">
-        ...
-    </footer>
-
-    <script>
-        // [여기에 2번 JavaScript 로직을 추가하세요]
-        async function loadBlogPosts() {
-            // ... 코드 내용 ...
-        }
-        window.addEventListener('load', loadBlogPosts);
-        // ... 기존 renderChart2 함수 내용 ...
-    function renderChart2(data) {
-        // (기존 코드 생략)
-    } // <- renderChart2 함수가 끝나는 중괄호
-
-    /* [이 위치에 아래 로직을 붙여넣으세요] */
     async function loadBlogPosts() {
-        const RSS_URL = `https://본인의티스토리주소.tistory.com/rss`; 
+        const RSS_URL = `https://winsum94.tistory.com/rss`; 
         const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`;
 
         try {
@@ -383,50 +348,6 @@
             container.innerHTML = "데이터 로딩 중 오류가 발생했습니다.";
         }
     }
-
-    // 페이지 로드 시 함수 실행
-    window.addEventListener('load', loadBlogPosts);
-
-</script> ```
-
----
-
-### 💡 확인 및 비판적 점검
-* **주소 수정 필수:** `RSS_URL` 변수의 `본인의티스토리주소` 부분을 실제 티스토리 도메인(예: `urologist-investor`)으로 바꾸셨는지 반드시 확인하십시오.
-* **함수 중복 확인:** 혹시 `window.onload`가 기존 코드 상단에 이미 정의되어 있다면, `window.addEventListener` 방식을 사용하는 것이 기존 기능을 덮어쓰지 않고 안전하게 두 함수를 모두 실행하는 방법입니다.
-* **API 한계:** `rss2json` 서비스는 무료 티어의 경우 업데이트 반영에 약간의 시차가 있을 수 있습니다. 블로그에 글을 올린 직후 바로 사이트에 뜨지 않더라도 이는 정상적인 지연입니다.
-
-이렇게 수정 후 Push 하시면, 사이트 하단에 블로그의 최신 글들이 리스트 형태로 나타나며 구글 애드센스 승인을 위한 **'동적 콘텐츠'** 요건을 충족하게 됩니다.
-
-**다음 단계로 무엇을 도와드릴까요?**
-* 블로그 리스트의 디자인(색상, 폰트 크기 등)을 사이트의 다크 모드 테마에 맞춰 더 세밀하게 조정하고 싶으신가요?
-* 아니면 `robots.txt` 작성이 잘 되었는지 확인해 드릴까요?
-    </script>
-
+</script>
 </body>
 </html>
-</section> <section id="creator-info" style="margin-top: 40px; padding: 25px; background: rgba(0, 255, 136, 0.05); border: 1px solid var(--primary); border-radius: 15px; text-align: center;">
-        <h3 style="color: var(--primary); margin-bottom: 15px;">🔍 더 깊은 분석이 궁금하신가요?</h3>
-        <p style="color: #ccc; margin-bottom: 20px;">
-            비뇨의학과 전문의의 시각으로 분석한 <b>투자 전략</b>과 <b>전문 의학 정보</b>를 블로그에서 확인해 보세요.
-        </p>
-        <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
-            <a href="https://winsum94.tistory.com" target="_blank" style="padding: 12px 25px; background: var(--primary); color: #000; text-decoration: none; border-radius: 30px; font-weight: bold; transition: 0.3s;">
-                📈 투자 & 의학 블로그 방문하기
-            </a>
-        </div>
-    </section>
-
-    <footer style="margin-top: 50px; padding: 30px; border-top: 1px solid #333; color: #666; font-size: 0.8rem;">
-        ...
-    </footer>
-
-</body> </html>
-</body>
-
-</html>
-
-
-
-
-
