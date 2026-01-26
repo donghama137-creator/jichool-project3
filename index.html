@@ -327,6 +327,84 @@
     </footer>
     </body>
 </html>
+</section> <section id="blog-posts" style="margin-top: 40px; padding: 25px; background: var(--card-bg); border: 1px solid #333; border-radius: 15px;">
+        <div class="section-title title-secondary">📝 최신 투자 및 의학 칼럼</div>
+        <div id="blog-content" style="color: #aaa; font-size: 0.9rem;">
+            글을 불러오는 중입니다...
+        </div>
+    </section>
+
+    <section id="creator-info" style="margin-top: 40px; padding: 25px; background: rgba(0, 255, 136, 0.05); border: 1px solid var(--primary); border-radius: 15px; text-align: center;">
+        ...
+    </section>
+
+    <footer style="margin-top: 50px; padding: 30px; border-top: 1px solid #333; color: #666; font-size: 0.8rem;">
+        ...
+    </footer>
+
+    <script>
+        // [여기에 2번 JavaScript 로직을 추가하세요]
+        async function loadBlogPosts() {
+            // ... 코드 내용 ...
+        }
+        window.addEventListener('load', loadBlogPosts);
+        // ... 기존 renderChart2 함수 내용 ...
+    function renderChart2(data) {
+        // (기존 코드 생략)
+    } // <- renderChart2 함수가 끝나는 중괄호
+
+    /* [이 위치에 아래 로직을 붙여넣으세요] */
+    async function loadBlogPosts() {
+        const RSS_URL = `https://본인의티스토리주소.tistory.com/rss`; 
+        const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`;
+
+        try {
+            const response = await fetch(API_URL);
+            const data = await response.json();
+            const container = document.getElementById('blog-content');
+
+            if (data.status === 'ok') {
+                let html = '<ul style="list-style: none; padding: 0;">';
+                data.items.slice(0, 3).forEach(item => {
+                    html += `
+                        <li style="margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px;">
+                            <a href="${item.link}" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: bold; font-size: 1.1rem;">
+                                ${item.title}
+                            </a>
+                            <p style="margin: 5px 0 0; color: #888;">${item.pubDate.split(' ')[0]}</p>
+                        </li>`;
+                });
+                html += '</ul>';
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = "블로그 글을 가져올 수 없습니다.";
+            }
+        } catch (e) {
+            container.innerHTML = "데이터 로딩 중 오류가 발생했습니다.";
+        }
+    }
+
+    // 페이지 로드 시 함수 실행
+    window.addEventListener('load', loadBlogPosts);
+
+</script> ```
+
+---
+
+### 💡 확인 및 비판적 점검
+* **주소 수정 필수:** `RSS_URL` 변수의 `본인의티스토리주소` 부분을 실제 티스토리 도메인(예: `urologist-investor`)으로 바꾸셨는지 반드시 확인하십시오.
+* **함수 중복 확인:** 혹시 `window.onload`가 기존 코드 상단에 이미 정의되어 있다면, `window.addEventListener` 방식을 사용하는 것이 기존 기능을 덮어쓰지 않고 안전하게 두 함수를 모두 실행하는 방법입니다.
+* **API 한계:** `rss2json` 서비스는 무료 티어의 경우 업데이트 반영에 약간의 시차가 있을 수 있습니다. 블로그에 글을 올린 직후 바로 사이트에 뜨지 않더라도 이는 정상적인 지연입니다.
+
+이렇게 수정 후 Push 하시면, 사이트 하단에 블로그의 최신 글들이 리스트 형태로 나타나며 구글 애드센스 승인을 위한 **'동적 콘텐츠'** 요건을 충족하게 됩니다.
+
+**다음 단계로 무엇을 도와드릴까요?**
+* 블로그 리스트의 디자인(색상, 폰트 크기 등)을 사이트의 다크 모드 테마에 맞춰 더 세밀하게 조정하고 싶으신가요?
+* 아니면 `robots.txt` 작성이 잘 되었는지 확인해 드릴까요?
+    </script>
+
+</body>
+</html>
 </section> <section id="creator-info" style="margin-top: 40px; padding: 25px; background: rgba(0, 255, 136, 0.05); border: 1px solid var(--primary); border-radius: 15px; text-align: center;">
         <h3 style="color: var(--primary); margin-bottom: 15px;">🔍 더 깊은 분석이 궁금하신가요?</h3>
         <p style="color: #ccc; margin-bottom: 20px;">
@@ -347,6 +425,7 @@
 </body>
 
 </html>
+
 
 
 
