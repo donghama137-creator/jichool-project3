@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10억 로드맵 | Money Diet</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0d0d0d;
+            --card-bg: #161616;
+            --text: #ffffff;
+            --primary: #00ff88;
+            --secondary: #00e1ff;
+            --nav-inactive: #666;
+            --color-saving: #444444;   
+            --color-installment: #BBBBBB; 
+            --color-m1: #00e1ff;       
+            --color-m15: #00ff88;      
+            --color-m2: #ff8800;       
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0; padding: 0;
+            line-height: 1.6;
+        }
+
+        /* --- 공통 네비게이션 바 스타일 --- */
+        nav.main-nav { 
+            display: flex; 
+            justify-content: center; 
+            gap: 30px; 
+            padding: 20px 0; 
+            background: #0d0d0d; 
+            border-bottom: 1px solid #333; 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000;
+        }
+        .nav-item { 
+            color: var(--nav-inactive); 
+            text-decoration: none; 
+            font-weight: bold; 
+            font-size: 0.95rem;
+            transition: 0.3s;
+            padding-bottom: 5px;
+        }
+        .nav-item:hover { color: var(--primary); }
+        .nav-item.active { 
+            color: var(--primary); 
+            border-bottom: 2px solid var(--primary); 
+        }
+
+        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+        
+        .dashboard { display: grid; grid-template-columns: 380px 1fr; gap: 30px; }
+        @media (max-width: 950px) { .dashboard { grid-template-columns: 1fr; } }
+
+        .input-section { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 1px solid #333; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.85rem; color: #aaa; margin-bottom: 5px; }
+        input { width: 100%; padding: 10px; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px; box-sizing: border-box; }
+
+        .comparison-table { width: 100%; margin-top: 20px; font-size: 0.8rem; border-collapse: collapse; }
+        .comparison-table th, .comparison-table td { padding: 10px 5px; text-align: left; border-bottom: 1px solid #333; }
+        
+        .chart-section { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 1px solid #333; }
+        .chart-container { height: 500px; }
+    </style>
+</head>
+<body>
+
+<nav class="main-nav">
+    <a href="index.html" class="nav-item">구독료 계산기</a>
+    <a href="roadmap.html" class="nav-item active">10억 로드맵</a>
+    <a href="history.html" class="nav-item">시장 역사</a>
+    <a href="privacy.html" class="nav-item">개인정보처리방침</a>
+</nav>
+
+<div class="container">
+    <div class="dashboard">
+        <div class="input-section">
+            <h3 style="margin-top:0; color:var(--secondary);">재무 데이터 설정</h3>
+            <div class="input-group">
+                <label>현재 자산 (만원)</label>
+                <input type="number" id="init-asset" value="5000" oninput="update()">
+            </div>
+            <div class="input-group">
+                <label>월 세후 수입 (만원)</label>
+                <input type="number" id="income" value="500" oninput="update()">
+            </div>
+            <div class="input-group">
+                <label>월 총 지출 (만원)</label>
+                <input type="number" id="expense" value="250" oninput="update()">
+            </div>
+            
+            <div style="background:#000; padding:15px; border-radius:10px; margin: 20px 0; border-left: 4px solid var(--primary);">
+                <p style="margin:0; font-size:0.8rem; color:#888;">매달 순 투자액</p>
+                <p id="invest-label" style="margin:5px 0 0; font-size:1.4rem; font-weight:bold; color:var(--primary);">250만원</p>
+            </div>
+
+            <table class="comparison-table">
+                <thead><tr><th>전략 (수익률)</th><th>10억 달성</th></tr></thead>
+                <tbody id="comparison-body"></tbody>
+            </table>
+        </div>
+
+        <div class="chart-section">
+            <h2 style="margin:0 0 20px 0; text-align:center;">10억 달성 시점 비교 시뮬레이션</h2>
+            <div class="chart-container"><canvas id="comparisonChart"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let chart;
+
+    function toAnnual(monthlyRate) {
+        return (Math.pow(1 + monthlyRate, 12) - 1);
+    }
+
+    const targets = [
+        { name: '일반 예금', label: '(연 2.0%)', type: 'annual', rate: 0.02, color: '#444444' },
+        { name: '정기 적금', label: '(연 4.0%)', type: 'annual', rate: 0.04, color: '#BBBBBB' },
+        { name: '월 1.0% 투자', label: `(연 ${ (toAnnual(0.01)*100).toFixed(1) }%)`, type: 'monthly', rate: 0.01, color: '#00e1ff' },
+        { name: '월 1.5% 투자', label: `(연 ${ (toAnnual(0.015)*100).toFixed(1) }%)`, type: 'monthly', rate: 0.015, color: '#00ff88' },
+        { name: '월 2.0% 투자', label: `(연 ${ (toAnnual(0.02)*100).toFixed(1) }%)`, type: 'monthly', rate: 0.02, color: '#ff8800' }
+    ];
+
+    function update() {
+        const initAsset = (parseFloat(document.getElementById('init-asset').value) || 0) * 10000;
+        const invest = (parseFloat(document.getElementById('income').value) - parseFloat(document.getElementById('expense').value)) * 10000;
+        document.getElementById('invest-label').innerText = (invest/10000).toLocaleString() + '만원';
+
+        let datasets = [];
+        let tableHtml = '';
+        const targetValue = 1000000000; // 10억
+
+        targets.forEach(target => {
+            let current = initAsset;
+            let months = 0;
+            let data = [Math.round(initAsset / 10000)];
+            const mRate = target.type === 'annual' ? Math.pow(1 + target.rate, 1/12) - 1 : target.rate;
+
+            for (let i = 1; i <= 360; i++) {
+                current = (current * (1 + mRate)) + invest;
+                
+                if (current >= targetValue) {
+                    data.push(100000); 
+                    if (months === 0) months = i;
+                    break; 
+                }
+                
+                if (i % 12 === 0) data.push(Math.round(current / 10000));
+            }
+            
+            const timeStr = months > 0 ? `${Math.floor(months/12)}년 ${months%12}개월` : '30년 초과';
+            tableHtml += `<tr><td><div style="color:${target.color}; font-weight:bold;">${target.name}</div><div style="font-size:0.75rem; color:#666;">${target.label}</div></td><td>${timeStr}</td></tr>`;
+            
+            datasets.push({
+                label: `${target.name} ${target.label}`,
+                data: data,
+                borderColor: target.color,
+                borderWidth: target.type === 'annual' ? 3 : 2,
+                pointRadius: 4, 
+                pointHitRadius: 10,
+                tension: 0.3,
+                spanGaps: false 
+            });
+        });
+
+        document.getElementById('comparison-body').innerHTML = tableHtml;
+        renderChart(Array.from({length: 31}, (_, i) => `${i}년`), datasets);
+    }
+
+    function renderChart(labels, datasets) {
+        const ctx = document.getElementById('comparisonChart').getContext('2d');
+        if (chart) chart.destroy();
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { 
+                        max: 110000, 
+                        grid: { color: '#222' }, 
+                        ticks: { color: '#888', callback: v => v >= 100000 ? '10억' : (v/10000).toFixed(1) + '억' } 
+                    },
+                    x: { grid: { display: false }, ticks: { color: '#888' } }
+                },
+                plugins: { 
+                    legend: { labels: { color: '#ccc', font: { size: 11 } } },
+                    tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + ctx.raw.toLocaleString() + '만원' } }
+                }
+            }
+        });
+    }
+    window.onload = update;
+</script>
+</body>
+</html>
